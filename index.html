@@ -1,55 +1,10 @@
-const char INDEX_HTML[] PROGMEM = R"=====(
+
 <!DOCTYPE html><html><head>
 <title>GenSet Monitor S3</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<!-- START NEW CODE - FIREBASE SCRIPTS FOR CLOUD -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-  const firebaseConfig = {
-    databaseURL: "https://genset-monitor-001-default-rtdb.asia-southeast1.firebasedatabase.app/"
-  };
-
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  window.loadCloudDevice = function() {
-    let sId = document.getElementById('cloudSerial').value.trim();
-    if(!sId) { alert("પ્રિય ગ્રાહક, કૃપા કરીને સિરિયલ નંબર નાખો!"); return; }
-    
-    document.getElementById('cloudLoginBox').style.display = 'none';
-    document.getElementById('cloudDashboard').style.display = 'block';
-    document.getElementById('showSerialText').innerText = sId;
-
-    const devRef = ref(db, 'devices/' + sId);
-    onValue(devRef, (snapshot) => {
-      let d = snapshot.val();
-      if (d) {
-        document.getElementById('vr').innerText = (d.vr || 0) + 'V';
-        document.getElementById('vy').innerText = (d.vy || 0) + 'V';
-        document.getElementById('vb').innerText = (d.vb || 0) + 'V';
-        document.getElementById('bp').innerText = (d.bt || 0) + '%';
-        document.getElementById('dp').innerText = (d.dp || 0);
-        document.getElementById('tDeg').innerText = (d.td || 0);
-        let st = document.getElementById('cloudGenStatus');
-        if(st) {
-          st.innerText = d.isOn == 1 ? "GENERATOR RUNNING" : "GENERATOR STOPPED";
-          st.style.color = d.isOn == 1 ? "#00ff00" : "#ff3333";
-        }
-      } else {
-        alert("આ સિરિયલ નંબરવાળા ડિવાઇસનો ડેટા ક્લાઉડ પર મળ્યો નથી!");
-      }
-    });
-  }
-</script>
-<!-- END NEW CODE -->
-
 <style>
 .header-container {
-    background: radial-gradient(circle, #1a3a5a 0%, #0d1b2a 100%);
+    background: radial-gradient(circle, #1a3a5a 0%, #0d1b2a 100%); /* ઈમેજ જેવો ડાર્ક બ્લુ બેકગ્રાઉન્ડ */
     padding: 30px 10px;
     text-align: center;
     border-bottom: 4px solid #d4af37;
@@ -114,10 +69,10 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
  .red-static { background-color: #ff3333; box-shadow: 0 0 5px #ff3333; }
  @keyframes blinker { 50% { opacity: 0; } }
  #cal-section{display:none; margin-top:15px; padding-top:15px; border-top:1px solid #444;}
- .st-box { background: #1a1a1a; padding: 15px; border-radius: 12px; margin: 15px auto; max-width: 500px; border: 2px solid #444; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
- .st-item { font-weight: bold; font-size: 19px; padding: 10px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; color: white; }
- .st-blink { color: #ff3333; animation: blinker 0.7s linear infinite; text-shadow: 0 0 10px #ff0000; font-weight: bold; }
- .bold-txt { font-weight: bold; }
+ st-box { background: #1a1a1a; padding: 15px; border-radius: 12px; margin: 15px auto; max-width: 500px; border: 2px solid #444; }
+ .st-item { font-weight: bold; font-size: 19px; padding: 8px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; }
+ .st-blink { color: #ff3333; animation: blinker 0.7s linear infinite; text-shadow: 0 0 8px #ff0000; }
+ @keyframes blinker { 50% { opacity: 0; } }
  table{width:100%;} td{padding:5px;}
  .ctrl-btn { width: 140px; height: 140px; border-radius: 50%; border: none; font-weight: bold; font-size: 20px; cursor: pointer; transition: 0.2s; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 0 #111, 0 15px 20px rgba(0,0,0,0.5); position: relative; }
  .btn-on { background: linear-gradient(145deg, #2ecc71, #27ae60); border: 5px solid #1e8449; }
@@ -130,28 +85,35 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
  .log-table { width: 100%; border-collapse: collapse; color: #eee; font-size: 14px; margin-top:10px; }
  .log-table th { background: #333; color: #00ffcc; padding: 10px; border: 1px solid #444; }
  .log-table td { padding: 8px; border: 1px solid #333; text-align: center; }
+  .st-box { background: #1e1e1e; padding: 15px; border-radius: 12px; margin: 15px auto; max-width: 500px; border: 2px solid #444; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+ .st-item { font-weight: bold; font-size: 19px; padding: 10px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; color: white; }
+ .st-blink { color: #ff3333; animation: blinker 0.7s linear infinite; text-shadow: 0 0 10px #ff0000; font-weight: bold; }
+ @keyframes blinker { 50% { opacity: 0; } }
+ .bold-txt { font-weight: bold; }
 </style></head><body>
-
-<!-- START NEW CODE - CLOUD SERIAL LOGIN BOX -->
-<div class="box" id="cloudLoginBox" style="margin-top:50px; border:3px solid #d4af37; background:#1a1a1a;">
-  <h2 style="color:#ffd700; margin:5px;">SHUBH ELECTRONIC CLOUD</h2>
-  <p style="color:#aaa; font-size:14px;">તમારા ડિવાઇસનો યુનિક સિરિયલ નંબર નાખો<br>(દા.ત. SE32-1A2B3C4D)</p>
-  <input type="text" id="cloudSerial" placeholder="SE32-XXXXXXXX" style="text-align:center; font-weight:bold; font-size:18px; color:#00ffcc;">
-  <br>
-  <button class="btn" onclick="loadCloudDevice()" style="background:#d4af37; color:black; font-size:16px;">ઓનલાઈન ડેશબોર્ડ જુઓ</button>
-</div>
-
-<div id="cloudDashboard" style="display:none;">
-<div style="background:#0d1b2a; padding:10px; border-bottom:2px solid #00ffcc; margin-bottom:15px; font-size:18px; font-weight:bold;">
-  CONNECTED DEVICE ID: <span id="showSerialText" style="color:#ffd700;">--</span> | <span id="cloudGenStatus" style="color:#ff3333;">OFFLINE</span>
-</div>
-<!-- END NEW CODE -->
-
 <div class="header-container">
   <div class="box" style="background: linear-gradient(145deg, #1a1a1a, #222); border: none; margin-top: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); border-radius: 15px;">
   <div id="tm" style="font-size: 45px; font-weight: bold; color: #00ffcc; text-shadow: 0 0 15px rgba(0,255,204,0.5);">00:00:00 --</div>
   <div id="dt" style="font-size: 18px; color: #aaa; margin-top: 5px; letter-spacing: 2px;">01-01-2024 - MON</div>
  </div>
+
+<div class="box" style="background:#1a1a1a; border:1px solid #00d4ff; padding:10px; margin: 10px auto; max-width:500px;">
+   <span style="color:#00d4ff; font-weight:bold;">SELECT GENERATOR:</span>
+   <select id="devSelect" onchange="switchDevice(this.value)" style="padding:8px; background:#222; color:#fff; border:1px solid #555; border-radius:5px; font-weight:bold; width:60%; margin-left:5px;">
+   </select>
+   <button onclick="openDevConfig()" style="padding:8px 12px; background:#6c5ce7; color:white; border:none; border-radius:5px; cursor:pointer; margin-left:5px;">⚙ SETUP</button>
+ </div>
+ 
+ <div id="cfgModal" style="display:none; background:#1e1e1e; border:2px solid #ffcc00; padding:15px; border-radius:10px; max-width:500px; margin:10px auto; text-align:left;">
+   <h4 style="color:#ffcc00; margin:0 0 10px 0; text-align:center;">MANAGE 5 GENERATORS</h4>
+   <div style="margin-bottom:8px;"><span style="color:#aaa; font-size:12px;">Firebase DB URL:</span><br><input id="cfg_fb" type="text" placeholder="https://xxx-default-rtdb.firebaseio.com" style="width:95%;"></div>
+   <div id="devListInputs"></div>
+   <div style="text-align:center; margin-top:10px;">
+     <button class="btn" style="width:45%; background:#28a745; display:inline-block;" onclick="saveDevConfig()">SAVE & RELOAD</button>
+     <button class="btn" style="width:45%; background:#c0392b; display:inline-block;" onclick="document.getElementById('cfgModal').style.display='none'">CLOSE</button>
+   </div>
+ </div>
+
  <h2>GENSET LIVE DASHBOARD</h2>
  <div class="ctrl-box">
   <button class="ctrl-btn btn-on" onclick="controlGen('on')">ENGINE<br>START</button>
@@ -313,6 +275,7 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
       <tr style="color:#aaa; font-size:12px; border-bottom:1px solid #444;">
         <th style="padding:10px;">TYPE</th><th style="padding:10px;">LAST</th><th style="padding:10px;">INPUT</th><th style="padding:10px;">ACTION</th>
       </tr>
+      <!-- RED PHASE -->
       <tr style="color:#ff3333; font-weight:bold; border-bottom:1px solid #333;">
         <td style="padding:10px;">RED V</td><td id="curVR">0.0</td>
         <td><input id="inVR" type="number" step="0.1" style="width:70px; padding:5px; background:#222; color:white; border:1px solid #ff3333;"></td>
@@ -323,6 +286,7 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
         <td><input id="inIR" type="number" step="0.01" style="width:70px; padding:5px; background:#222; color:white; border:1px solid #ff3333;"></td>
         <td><button class="btn" style="width:auto; padding:5px 10px; background:#ff3333; font-size:12px;" onclick="savePC('Ir')">SAVE</button></td>
       </tr>
+      <!-- YELLOW PHASE -->
       <tr style="color:#ffcc00; font-weight:bold; border-bottom:1px solid #333;">
         <td style="padding:10px;">YEL V</td><td id="curVY">0.0</td>
         <td><input id="inVY" type="number" step="0.1" style="width:70px; padding:5px; background:#222; color:white; border:1px solid #ffcc00;"></td>
@@ -333,6 +297,7 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
         <td><input id="inIY" type="number" step="0.01" style="width:70px; padding:5px; background:#222; color:white; border:1px solid #ffcc00;"></td>
         <td><button class="btn" style="width:auto; padding:5px 10px; background:#ffcc00; color:black; font-size:12px;" onclick="savePC('Iy')">SAVE</button></td>
       </tr>
+      <!-- BLUE PHASE -->
       <tr style="color:#3366ff; font-weight:bold; border-bottom:1px solid #333;">
         <td style="padding:10px;">BLU V</td><td id="curVB">0.0</td>
         <td><input id="inVB" type="number" step="0.1" style="width:70px; padding:5px; background:#222; color:white; border:1px solid #3366ff;"></td>
@@ -361,50 +326,115 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
       <div style="color: #ffffff; font-size: 18px; margin-top: 12px; font-weight: bold; letter-spacing: 2px; font-family: 'Arial Black', sans-serif;">
        PRODUCT ID: <span style="color: #00ffcc;">SE32-v2</span> <span style="color: #e5e4e2; font-size: 12px; font-weight: normal; letter-spacing: 0px;">[Platinum]</span>
     </div>
+    
     <div style="margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;">
        <div style="color: #aaaaaa; font-size: 10px; font-family: 'Courier New', monospace;">
           STABLE BUILD: 2026.06.11 | ESP32-STANDARD
        </div>
     </div>
  </div>
-
-</div> <!-- START NEW CODE - CLOSE CLOUD DASHBOARD DIV -->
-
  <script>
+
+ let fbURL = localStorage.getItem("fb_url") || "https://your-project-id-default-rtdb.firebaseio.com";
+  let devList = JSON.parse(localStorage.getItem("dev_list") || "[]");
+  if(devList.length === 0) {
+    devList = [
+      { name: "Genset 1", id: "" },
+      { name: "Genset 2", id: "" },
+      { name: "Genset 3", id: "" },
+      { name: "Genset 4", id: "" },
+      { name: "Genset 5", id: "" }
+    ];
+  }
+  let currentDevIdx = parseInt(localStorage.getItem("sel_dev_idx") || "0");
+
+  function initDevices() {
+    let sel = document.getElementById("devSelect");
+    sel.innerHTML = "";
+    devList.forEach((d, i) => {
+      let opt = document.createElement("option");
+      opt.value = i;
+      opt.innerText = (d.name || ("Genset " + (i+1))) + (d.id ? " (" + d.id + ")" : " [NOT SET]");
+      if(i === currentDevIdx) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+  initDevices();
+
+  function switchDevice(idx) {
+    currentDevIdx = parseInt(idx);
+    localStorage.setItem("sel_dev_idx", currentDevIdx);
+  }
+
+  function openDevConfig() {
+    document.getElementById("cfg_fb").value = fbURL;
+    let h = "";
+    devList.forEach((d, i) => {
+      h += `<div style="border-bottom:1px solid #333; padding:5px 0;">
+        <input id="dn_${i}" value="${d.name}" placeholder="Machine Name" style="width:35%; display:inline-block;">
+        <input id="di_${i}" value="${d.id}" placeholder="genset001-XXXXXX" style="width:55%; display:inline-block;">
+      </div>`;
+    });
+    document.getElementById("devListInputs").innerHTML = h;
+    document.getElementById("cfgModal").style.display = "block";
+  }
+
+  function saveDevConfig() {
+    fbURL = document.getElementById("cfg_fb").value.replace(/\/$/, "");
+    localStorage.setItem("fb_url", fbURL);
+    for(let i=0; i<5; i++) {
+      devList[i].name = document.getElementById("dn_" + i).value.trim();  
+   devList[i].id = document.getElementById("di_" + i).value.trim();
+    }
+    localStorage.setItem("dev_list", JSON.stringify(devList));
+    alert("Saved Successfully!");
+    location.reload();
+  }
+
   setInterval(()=>{
-   fetch('/data').then(r=>r.json()).then(d=>{
-    document.getElementById('vr').innerText=d.vr+'V'; document.getElementById('br_v').style.width=(d.vr/5)+'%';
+   let activeDevId = devList[currentDevIdx] ? devList[currentDevIdx].id : "";
+   if(!activeDevId || !fbURL) return;
+
+   fetch(fbURL + '/devices/' + activeDevId + '/live.json')
+    .then(r=>r.json())
+    .then(d=>{
+      if(!d) return;
+      document.getElementById('vr').innerText=d.vr+'V'; document.getElementById('br_v').style.width=(d.vr/5)+'%';
     document.getElementById('ir').innerText=d.ir+'A'; document.getElementById('br_i').style.width=(d.ir*2)+'%';
     document.getElementById('vy').innerText=d.vy+'V'; document.getElementById('by_v').style.width=(d.vy/5)+'%';
     document.getElementById('iy').innerText=d.iy+'A'; document.getElementById('by_i').style.width=(d.iy*2)+'%';
     document.getElementById('vb').innerText=d.vb+'V'; document.getElementById('bb_v').style.width=(d.vb/5)+'%';
     document.getElementById('ib').innerText=d.ib+'A'; document.getElementById('bb_i').style.width=(d.ib*2)+'%';
+    // START NEW CODE
     document.getElementById('bp').innerText=d.bt+'%';
     document.getElementById('br').style.setProperty('--v', d.bt);
     document.getElementById('bv').innerText=d.bv+'V DC';
     let dot = document.getElementById('chgDot');
     let txt = document.getElementById('chgTxt'); 
     let src = document.getElementById('chgSrc');  
-    let isOn = parseInt(d.isOn);
-    let ca = parseInt(d.ca);
-    let r26 = parseInt(d.r26);
+let isOn = parseInt(d.isOn);
+let ca = parseInt(d.ca);
+let r26 = parseInt(d.r26);
 
-    if (isOn === 1) {
-        dot.className = "dot green-blink";
-        txt.innerText = "CHARGING ON";
-        txt.style.color = "#00ff00";
-        src.innerText = "SOURCE: GEN (ALTERNATOR)";
-    } else if (ca === 1 || r26 === 1) {
-        dot.className = "dot green-blink";
-        txt.innerText = "CHARGING ON";
-        txt.style.color = "#00ff00";
-        src.innerText = "SOURCE: GEB (AC MAINS)";
-    } else {
-        dot.className = "dot red-static";
-        txt.innerText = "NOT CHARGING";
-        txt.style.color = "#ff3333";
-        src.innerText = "SOURCE: --";
-    }
+if (isOn === 1) {
+    // શરત ૧: જો જનરેટર ચાલુ હોય (ALT સોર્સ)
+    dot.className = "dot green-blink";
+    txt.innerText = "CHARGING ON";
+    txt.style.color = "#00ff00";
+    src.innerText = "SOURCE: GEN (ALTERNATOR)";
+} else if (ca === 1 || r26 === 1) {
+    // શરત ૨: જો જનરેટર બંધ હોય પણ ગ્રીડ ચાર્જર એક્ટિવ હોય (GEB સોર્સ)
+    dot.className = "dot green-blink";
+    txt.innerText = "CHARGING ON";
+    txt.style.color = "#00ff00";
+    src.innerText = "SOURCE: GEB (AC MAINS)";
+} else {
+    // શરત ૩: બંને પાવર બંધ હોય ત્યારે
+    dot.className = "dot red-static";
+    txt.innerText = "NOT CHARGING";
+    txt.style.color = "#ff3333";
+    src.innerText = "SOURCE: --";
+}
     let oV = d.ov; 
     let oS = d.os;
     document.getElementById('ovTxt').innerText = "Voltage: " + oV + "V DC";
@@ -432,7 +462,7 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
     
     let dCard = document.getElementById('dslCard');
     document.getElementById('tDeg').innerText = d.td;
-    document.getElementById('tVolt').innerText = d.tv; 
+    document.getElementById('tVolt').innerText = d.tv; // વોલ્ટેજ અહીંથી અપડેટ થશે
     document.getElementById('tStat').innerText = d.ts;
     document.getElementById('tBar').style.width = (d.td / 1.5) + "%";
     
@@ -456,16 +486,16 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
     sElement.innerText = d.ga2s;
     
     if (d.ga2s == "BELT FAULT!") {
-      sElement.style.color = "#ff3333"; 
+      sElement.style.color = "#ff3333"; // લાલ કલર
     } else if (d.ga2s == "OK") {
-      sElement.style.color = "#00ff00"; 
+      sElement.style.color = "#00ff00"; // લીલો કલર
     } else {
-      sElement.style.color = "#aaaaaa"; 
+      sElement.style.color = "#aaaaaa"; // ગ્રે કલર (OFF માટે)
     }
     let gStat = (d.gvr > 100 || d.gvy > 100 || d.gvb > 100) ? "MAINS ON" : "POWER CUT";
     document.getElementById('gebStat').innerText = gStat;
     document.getElementById('gebStat').style.color = (gStat == "MAINS ON") ? "#00ff00" : "#ff3333";
-    document.getElementById('geb_pr').innerText = (d.gvr >= 200) ? "OK" : "CUT";
+     document.getElementById('geb_pr').innerText = (d.gvr >= 200) ? "OK" : "CUT";
     document.getElementById('geb_pr').style.color = (d.gvr >= 200) ? "#00ff00" : "#ff3333";
     document.getElementById('geb_py').innerText = (d.gvy >= 200) ? "OK" : "CUT";
     document.getElementById('geb_py').style.color = (d.gvy >= 200) ? "#00ff00" : "#ff3333";
@@ -484,24 +514,28 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
     document.getElementById('onCnt').innerText = d.onc;
     document.getElementById('offCnt').innerText = d.ofc;
     document.getElementById('runTime').innerText = d.runtime;
-    let b = document.getElementById('stBatt'), o = document.getElementById('stOil'), dl = document.getElementById('stDsl'), t = document.getElementById('stTemp'), bl = document.getElementById('stBelt'), md = document.getElementById('modeDisp');
+   let b = document.getElementById('stBatt'), o = document.getElementById('stOil'), dl = document.getElementById('stDsl'), t = document.getElementById('stTemp'), bl = document.getElementById('stBelt'), md = document.getElementById('modeDisp');
     
+    // મોડ ડિસ્પ્લે
     md.innerText = "MODE: " + (d.auto ? "AUTO" : "MANUAL");
     md.style.color = d.auto ? "#00ff00" : "#ffcc00";
-    document.getElementById('mLock').checked = d.mLock;
+document.getElementById('mLock').checked = d.mLock;
+    // ટેમ્પરેચર (ફક્ત NORMAL/HIGH/LOW અને BOLD)
     t.innerText = d.ts; 
     t.style.fontWeight = "bold";
     if(d.ts == "HIGH") { t.className="st-blink"; } else { t.style.color="#00ff00"; t.className="bold-txt"; }
 
+    // બેલ્ટ સ્ટેટસ (BOLD)
     bl.style.fontWeight = "bold";
     if(d.ga2s == "BELT FAULT!") { bl.innerText="BELT BROKEN!"; bl.className="st-blink"; }
     else if(d.ga2s == "OFF") { bl.innerText="OFF"; bl.style.color="#888"; bl.className="bold-txt"; }
     else { bl.innerText="OK"; bl.style.color="#00ff00"; bl.className="bold-txt"; }
 
+    // મોડ બદલવા માટેનું ફંક્શન
     window.toggleAuto = function() { fetch('/toggleMode').then(()=>console.log("Mode Toggled")); };
-    if(d.bv < 11.5) { 
+      if(d.bv < 11.5) { 
         b.innerText="LOW"; 
-        b.className="st-blink"; 
+        b.className="st-blink"; // બ્લિંક ચાલુ કરવા માટે
     } else if(d.bv < 12.5) { 
         b.innerText="MEDIUM"; 
         b.style.color="#ffcc00"; 
@@ -512,6 +546,7 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
         b.className="bold-txt"; 
     }
 
+    // Oil Status - જો LOW OIL! હોય તો બ્લિંક થશે
     if(d.os == "LOW OIL!") { 
         o.innerText="LOW OIL!"; 
         o.className="st-blink"; 
@@ -521,6 +556,7 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
         o.className="bold-txt"; 
     }
 
+    // Diesel Status - જો ૨૦% થી નીચે હોય તો બ્લિંક થશે
     if(d.dp < 20) { 
         dl.innerText="LOW LEVEL"; 
         dl.className="st-blink"; 
@@ -529,16 +565,16 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
         dl.style.color=(d.dp < 60 ? "#ffcc00" : "#00ff00"); 
         dl.className="bold-txt"; 
     }
-    if(d.cBatt != undefined) document.getElementById('curB').innerText = d.cBatt; 
+   if(d.cBatt != undefined) document.getElementById('curB').innerText = d.cBatt; 
     if(d.cOil != undefined) document.getElementById('curO').innerText = d.cOil;
     if(d.cDsl != undefined) document.getElementById('curD').innerText = d.cDsl;
     if(d.cTemp != undefined) document.getElementById('curT').innerText = d.cTemp;
-    if(d.cVR != undefined) {
+   if(d.cVR != undefined) {
       document.getElementById('curVR').innerText = d.cVR; document.getElementById('curIR').innerText = d.cIR;
       document.getElementById('curVY').innerText = d.cVY; document.getElementById('curIY').innerText = d.cIY;
       document.getElementById('curVB').innerText = d.cVB; document.getElementById('curIB').innerText = d.cIB;
     }
-    if (d.logs && Array.isArray(d.logs)) {
+       if (d.logs && Array.isArray(d.logs)) {
       let htm = "";
       d.logs.forEach(l => {
         if(l.dt && l.dt !== "") {
@@ -549,7 +585,6 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
     }
    });
   },1000);
-
   function resetWeek() {
     let p = document.getElementById('logPin').value;
     if (p == '12345') {
@@ -559,11 +594,9 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
     } else { alert('Incorrect PIN!'); }
     document.getElementById('logPin').value = "";
   }
-
   function unlock(){if(document.getElementById('cp').value=='12345')document.getElementById('cal-section').style.display='block'; else alert('Wrong Password');}
-
-  function saveCal(type) {
-    let inputId = 'in' + type.substring(0, 1); 
+ function saveCal(type) {
+    let inputId = 'in' + type.substring(0, 1); // B, O, D, T માંથી ID બનાવશે
     let val = document.getElementById(inputId).value;
     if(val == "") { alert("Value enter karo!"); return; }
     
@@ -572,19 +605,24 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
        location.reload(); 
     });
   }
-
-  function savePC(type) {
+function savePC(type) {
+    // અહિયાં .toUpperCase() ઉમેર્યું છે જેથી 'Vr' નું 'VR' થઈ જાય અને ID મળી જાય
     let id = 'in' + type.toUpperCase(); 
     let val = document.getElementById(id).value;
+    
     if(val == "" || val <= 0) { alert("Invalid Value in " + id); return; }
     
+    console.log("Sending to ESP32: " + type + " = " + val);
+
     fetch('/savePhaseCal?p=' + type + '&v=' + val)
       .then(r => r.text())
-      .then(t => { alert("RESPONSE: " + t); })
+      .then(t => {
+         alert("RESPONSE: " + t); 
+         console.log("Success: " + t);
+      })
       .catch(e => alert("Error: " + e));
   }
-
-  function lockMode(val) {
+ function lockMode(val) {
     fetch('/setLock?v=' + (val ? 1 : 0)).then(r => r.text()).then(t => {
        alert("System " + (val ? "LOCKED in MANUAL" : "UNLOCKED"));
        location.reload();
@@ -600,18 +638,23 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
     } else { alert("Incorrect Password!"); }
     document.getElementById('adminPass').value = "";
   }
-
-  function controlGen(action) {
+ function controlGen(action) {
+    // બટન દબાવતા જ કલર બદલાઈ જશે જેથી યુઝરને ખબર પડે
     let btn = event.currentTarget;
     let originalColor = btn.style.background;
-    btn.style.background = "#555"; 
+    btn.style.background = "#555"; // ક્લિક કરતા જ ગ્રે કલર થઈ જશે (Fast Feedback)
+    let activeDevId = devList[currentDevIdx] ? devList[currentDevIdx].id : "";
+    if(!activeDevId || !fbURL) { alert("Please configure Device ID first!"); return; }
 
-    fetch('/genCtrl?action=' + action).then(() => {
+    // Firebase માં રીઅલટાઇમ કમાન્ડ મોકલો
+    fetch(fbURL + '/devices/' + activeDevId + '/cmd.json', {
+      method: 'PUT',
+      body: JSON.stringify({ action: action, time: Date.now() })
+    }).then(() => {
        setTimeout(() => { btn.style.background = originalColor; }, 500);
     }).catch(err => {
-       alert("Network Slow!");
+       alert("Network Error!");
        btn.style.background = originalColor;
     });
   }
  </script></body></html>
-)=====";

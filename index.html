@@ -398,7 +398,7 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
     .then(r=>r.json())
     .then(d=>{
       if(!d) return;
-      document.getElementById('vr').innerText=d.vr+'V'; document.getElementById('br_v').style.width=(d.vr/5)+'%'; 
+      // document.getElementById('vr').innerText=d.vr+'V'; document.getElementById('br_v').style.width=(d.vr/5)+'%'; 
       document.getElementById('vr').innerText = (d.vr !== undefined ? d.vr : '0') + 'V'; 
       document.getElementById('br_v').style.width = ((d.vr || 0) / 5) + '%';
       document.getElementById('ir').innerText = (d.ir !== undefined ? d.ir : '0') + 'A'; 

@@ -334,8 +334,11 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
     </div>
  </div>
  <script>
-
- let fbURL = localStorage.getItem("fb_url") || "https://your-project-id-default-rtdb.firebaseio.com";
+ const FIXED_FIREBASE_URL = "https://genset-monitor-001-default-rtdb.asia-southeast1.firebasedatabase.app";
+  let fbURL = localStorage.getItem("fb_url") || FIXED_FIREBASE_URL;
+  if (!localStorage.getItem("fb_url")) {
+    localStorage.setItem("fb_url", FIXED_FIREBASE_URL);
+  }
   let devList = JSON.parse(localStorage.getItem("dev_list") || "[]");
   if(devList.length === 0) {
     devList = [

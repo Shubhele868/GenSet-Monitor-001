@@ -520,6 +520,15 @@ if (isOn === 1) {
     document.getElementById('onCnt').innerText = d.onc;
     document.getElementById('offCnt').innerText = d.ofc;
     document.getElementById('runTime').innerText = d.runtime;
+    if (d.logs && Array.isArray(d.logs)) {
+      let htm = "";
+      d.logs.forEach(l => {
+        if(l.dt && l.dt !== "") {
+          htm += `<tr><td>${l.dt}</td><td style="color:#00ff00; font-weight:bold;">${l.rt}</td><td>${l.on}</td><td>${l.off}</td></tr>`;
+        }
+      });
+      document.getElementById('weekBody').innerHTML = htm;
+    }
    let b = document.getElementById('stBatt'), o = document.getElementById('stOil'), dl = document.getElementById('stDsl'), t = document.getElementById('stTemp'), bl = document.getElementById('stBelt'), md = document.getElementById('modeDisp');
     
     // મોડ ડિસ્પ્લે

@@ -399,12 +399,19 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
     .then(r=>r.json())
     .then(d=>{
       if(!d) return;
-      document.getElementById('vr').innerText=d.vr+'V'; document.getElementById('br_v').style.width=(d.vr/5)+'%';
-    document.getElementById('ir').innerText=d.ir+'A'; document.getElementById('br_i').style.width=(d.ir*2)+'%';
-    document.getElementById('vy').innerText=d.vy+'V'; document.getElementById('by_v').style.width=(d.vy/5)+'%';
-    document.getElementById('iy').innerText=d.iy+'A'; document.getElementById('by_i').style.width=(d.iy*2)+'%';
-    document.getElementById('vb').innerText=d.vb+'V'; document.getElementById('bb_v').style.width=(d.vb/5)+'%';
-    document.getElementById('ib').innerText=d.ib+'A'; document.getElementById('bb_i').style.width=(d.ib*2)+'%';
+      document.getElementById('vr').innerText=d.vr+'V'; document.getElementById('br_v').style.width=(d.vr/5)+'%'; 
+      document.getElementById('vr').innerText = (d.vr !== undefined ? d.vr : '0') + 'V'; 
+      document.getElementById('br_v').style.width = ((d.vr || 0) / 5) + '%';
+      document.getElementById('ir').innerText = (d.ir !== undefined ? d.ir : '0') + 'A'; 
+      document.getElementById('br_i').style.width = ((d.ir || 0) * 2) + '%';
+      document.getElementById('vy').innerText = (d.vy !== undefined ? d.vy : '0') + 'V'; 
+      document.getElementById('by_v').style.width = ((d.vy || 0) / 5) + '%';
+      document.getElementById('iy').innerText = (d.iy !== undefined ? d.iy : '0') + 'A'; 
+      document.getElementById('by_i').style.width = ((d.iy || 0) * 2) + '%';
+      document.getElementById('vb').innerText = (d.vb !== undefined ? d.vb : '0') + 'V'; 
+      document.getElementById('bb_v').style.width = ((d.vb || 0) / 5) + '%';
+      document.getElementById('ib').innerText = (d.ib !== undefined ? d.ib : '0') + 'A'; 
+      document.getElementById('bb_i').style.width = ((d.ib || 0) * 2) + '%';
     // START NEW CODE
     document.getElementById('bp').innerText=d.bt+'%';
     document.getElementById('br').style.setProperty('--v', d.bt);

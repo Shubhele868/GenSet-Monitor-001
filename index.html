@@ -114,6 +114,15 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
  </div>
 
  <h2>GENSET LIVE DASHBOARD</h2>
+ <div class="box" id="srvBox" style="background: linear-gradient(145deg, #1f1f1f, #141414); border: 2px solid #00d4ff; border-radius: 12px; padding: 12px; margin: 10px auto; max-width: 500px;">
+   <div style="font-size: 13px; color: #aaa; letter-spacing: 1px;">GENSET IP ADDRESS: <span id="bIP" style="color: #00ffcc; font-weight: bold; font-size: 16px;">0.0.0.0</span></div>
+   <div id="srvTitle" style="font-size: 22px; font-weight: 900; margin: 8px 0; color: #00ffcc; letter-spacing: 1px;">SERVICE STATUS: CHECKING...</div>
+   <div id="srvSub" style="font-size: 15px; color: #ffcc00; font-weight: bold;">NEXT SERVICE: 300 HOURS</div>
+   <div style="margin-top: 10px; border-top: 1px solid #333; padding-top: 8px;">
+     <input type="password" id="srvPin" placeholder="***" style="width: 70px; text-align: center; padding: 6px; background: #222; color: #00ff00; border: 1px solid #555; border-radius: 4px; font-size: 16px;">
+     <button type="button" class="btn" style="width: auto; padding: 6px 15px; margin: 0; background: #e67e22; font-size: 13px; font-weight: bold; display: inline-block;" onclick="resetServiceHours()">RESET SERVICE</button>
+   </div>
+ </div>
  <div class="ctrl-box">
   <button class="ctrl-btn btn-on" onclick="controlGen('on')">ENGINE<br>START</button>
   <button class="ctrl-btn btn-off" onclick="controlGen('off')">ENGINE<br>STOP</button>
@@ -230,11 +239,9 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
  </div>
  <div class="box">
   <h3 style="color:#00d4ff">WiFi Settings</h3>
-  <form action="/saveWifi" method="POST">
-   SSID: <input name="s" type="text" placeholder="WiFi Name"><br>
-   PASS: <input name="w" type="password" placeholder="WiFi Password"><br>
-   <button type="submit" class="btn" style="background:#007bff">SAVE WIFI SETTINGS</button>
-  </form>
+  SSID: <input id="fb_ssid" type="text" placeholder="WiFi Name"><br>
+   PASS: <input id="fb_pass" type="password" placeholder="WiFi Password"><br>
+   <button type="button" onclick="saveWifiFirebase()" class="btn" style="background:#007bff">SAVE WIFI SETTINGS</button>
  </div>
 
  <div class="box">
@@ -520,6 +527,29 @@ if (isOn === 1) {
     document.getElementById('onCnt').innerText = d.onc;
     document.getElementById('offCnt').innerText = d.ofc;
     document.getElementById('runTime').innerText = d.runtime;
+if(d.boardIP) document.getElementById('bIP').innerText = d.boardIP;
+    let srvTarget = d.srvHrs || 300;
+    let rParts = (d.runtime || "00:00:00").split(":");
+    let curHours = parseInt(rParts[0]) || 0;
+    let sBox = document.getElementById('srvBox');
+    let sTitle = document.getElementById('srvTitle');
+    let sSub = document.getElementById('srvSub');
+
+    if (curHours >= srvTarget) {
+      sBox.style.borderColor = "#ff3333";
+      sTitle.innerText = "⚠ SERVICE DUE! (MAINTENANCE REQUIRED)";
+      sTitle.className = "st-blink";
+      sTitle.style.color = "#ff3333";
+      sSub.innerText = "OVERDUE BY: " + (curHours - srvTarget) + " HOURS (RUN: " + curHours + "H)";
+      sSub.style.color = "#ff3333";
+    } else {
+      sBox.style.borderColor = "#00d4ff";
+      sTitle.innerText = "ENGINE STATUS: HEALTHY";
+      sTitle.className = "";
+      sTitle.style.color = "#00ffcc";
+      sSub.innerText = "NEXT SERVICE AT: " + srvTarget + " HOURS (REMAINING: " + (srvTarget - curHours) + " HOURS)";
+      sSub.style.color = "#ffcc00";
+    }
     if (d.logs && Array.isArray(d.logs)) {
       let htm = "";
       d.logs.forEach(l => {
@@ -547,7 +577,15 @@ document.getElementById('mLock').checked = d.mLock;
     else { bl.innerText="OK"; bl.style.color="#00ff00"; bl.className="bold-txt"; }
 
     // મોડ બદલવા માટેનું ફંક્શન
-    window.toggleAuto = function() { fetch('/toggleMode').then(()=>console.log("Mode Toggled")); };
+   window.toggleAuto = function() {
+      let actDev = devList[currentDevIdx] ? devList[currentDevIdx].id : "";
+      if(actDev && fbURL) {
+        fetch(fbURL + '/devices/' + actDev + '/cmd.json', {
+          method: 'PUT',
+          body: JSON.stringify({ action: "toggleMode", time: Date.now() })
+        }).then(() => alert("Mode Change Request Sent!"));
+      }
+    };
       if(d.bv < 11.5) { 
         b.innerText="LOW"; 
         b.className="st-blink"; // બ્લિંક ચાલુ કરવા માટે
@@ -602,56 +640,85 @@ document.getElementById('mLock').checked = d.mLock;
   },1000);
   function resetWeek() {
     let p = document.getElementById('logPin').value;
-    if (p == '12345') {
+    if (p == '12345') {   
       if (confirm('Are you sure to Clear 7-Day History?')) {
-        fetch('/resetWeekly').then(() => { alert('Logs Cleared!'); location.reload(); });
+        let actDev = devList[currentDevIdx] ? devList[currentDevIdx].id : "";
+        if(actDev && fbURL) {
+          fetch(fbURL + '/devices/' + actDev + '/cmd.json', {
+            method: 'PUT',
+            body: JSON.stringify({ action: "resetWeekly", time: Date.now() })
+          }).then(() => alert("7-Day History Cleared via Firebase!"));
+        }
       }
     } else { alert('Incorrect PIN!'); }
     document.getElementById('logPin').value = "";
   }
   function unlock(){if(document.getElementById('cp').value=='12345')document.getElementById('cal-section').style.display='block'; else alert('Wrong Password');}
- function saveCal(type) {
-    let inputId = 'in' + type.substring(0, 1); // B, O, D, T માંથી ID બનાવશે
+  function saveCal(type) {
+    let inputId = 'in' + type.substring(0, 1);
     let val = document.getElementById(inputId).value;
     if(val == "") { alert("Value enter karo!"); return; }
-    
-    fetch('/save' + type + 'Cal?v=' + val).then(r => r.text()).then(t => {
-       alert(t);
-       location.reload(); 
-    });
+    let actDev = devList[currentDevIdx] ? devList[currentDevIdx].id : "";
+    if(actDev && fbURL) {
+      fetch(fbURL + '/devices/' + actDev + '/cmd.json', {
+        method: 'PUT',
+        body: JSON.stringify({ action: "saveCal", type: type, val: parseFloat(val) })
+      }).then(() => alert(type + " Calibration Saved via Firebase!"));
+    }
   }
-function savePC(type) {
-    // અહિયાં .toUpperCase() ઉમેર્યું છે જેથી 'Vr' નું 'VR' થઈ જાય અને ID મળી જાય
+  function savePC(type) {
     let id = 'in' + type.toUpperCase(); 
     let val = document.getElementById(id).value;
-    
     if(val == "" || val <= 0) { alert("Invalid Value in " + id); return; }
-    
-    console.log("Sending to ESP32: " + type + " = " + val);
-
-    fetch('/savePhaseCal?p=' + type + '&v=' + val)
-      .then(r => r.text())
-      .then(t => {
-         alert("RESPONSE: " + t); 
-         console.log("Success: " + t);
-      })
-      .catch(e => alert("Error: " + e));
+    let actDev = devList[currentDevIdx] ? devList[currentDevIdx].id : "";
+    if(actDev && fbURL) {
+      fetch(fbURL + '/devices/' + actDev + '/cmd.json', {
+        method: 'PUT',
+        body: JSON.stringify({ action: "saveCal", type: type, val: parseFloat(val) })
+      }).then(() => alert(type + " Phase Saved via Firebase!"));
+    }
   }
  function lockMode(val) {
-    fetch('/setLock?v=' + (val ? 1 : 0)).then(r => r.text()).then(t => {
-       alert("System " + (val ? "LOCKED in MANUAL" : "UNLOCKED"));
-       location.reload();
-    });
+    let actDev = devList[currentDevIdx] ? devList[currentDevIdx].id : "";
+    if(actDev && fbURL) {
+      fetch(fbURL + '/devices/' + actDev + '/cmd.json', {
+        method: 'PUT',
+        body: JSON.stringify({ action: "setLock", val: (val ? 1 : 0), time: Date.now() })
+      }).then(() => alert("System " + (val ? "LOCKED in MANUAL" : "UNLOCKED")));
+    }
   }
 
   function resetCnt(){
     let p = document.getElementById('adminPass').value;
     if(p == "12345") { 
         if(confirm("Are you sure to Reset Logs?")) {
-            fetch('/resetCounters').then(r=>location.reload()); 
+            let actDev = devList[currentDevIdx] ? devList[currentDevIdx].id : "";
+            if(actDev && fbURL) {
+              fetch(fbURL + '/devices/' + actDev + '/cmd.json', {
+                method: 'PUT',
+                body: JSON.stringify({ action: "resetCounters", time: Date.now() })
+              }).then(() => alert("Counters Reset via Firebase!"));
+            }
         }
     } else { alert("Incorrect Password!"); }
     document.getElementById('adminPass').value = "";
+  }
+  function resetServiceHours() {
+    let pin = document.getElementById('srvPin').value;
+    if (pin === "12345") {
+      if (confirm("Are you sure to Reset Generator Service Counter to next 300 Hours?")) {
+        let actDev = devList[currentDevIdx] ? devList[currentDevIdx].id : "";
+        if(actDev && fbURL) {
+          fetch(fbURL + '/devices/' + actDev + '/cmd.json', {
+            method: 'PUT',
+            body: JSON.stringify({ action: "resetService", time: Date.now() })
+          }).then(() => alert("Service Counter Reset via Firebase!"));
+        }
+      }
+    } else {
+      alert("Incorrect Service PIN!");
+    }
+    document.getElementById('srvPin').value = "";
   }
  function controlGen(action) {
     // બટન દબાવતા જ કલર બદલાઈ જશે જેથી યુઝરને ખબર પડે

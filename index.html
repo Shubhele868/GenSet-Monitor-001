@@ -122,7 +122,8 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
      <input type="password" id="srvPin" placeholder="***" style="width: 70px; text-align: center; padding: 6px; background: #222; color: #00ff00; border: 1px solid #555; border-radius: 4px; font-size: 16px;">
      <button type="button" class="btn" style="width: auto; padding: 6px 15px; margin: 0; background: #e67e22; font-size: 13px; font-weight: bold; display: inline-block;" onclick="resetServiceHours()">RESET SERVICE</button>
    </div>
- </div>
+
+</div>
  <div class="ctrl-box">
   <button class="ctrl-btn btn-on" onclick="controlGen('on')">ENGINE<br>START</button>
   <button class="ctrl-btn btn-off" onclick="controlGen('off')">ENGINE<br>STOP</button>
@@ -530,24 +531,24 @@ if (isOn === 1) {
 if(d.boardIP) document.getElementById('bIP').innerText = d.boardIP;
     let srvTarget = d.srvHrs || 300;
     let rParts = (d.runtime || "00:00:00").split(":");
-    let curHours = parseInt(rParts[0]) || 0;
+   let curHours = parseInt(rParts[0]) || 0;
     let sBox = document.getElementById('srvBox');
     let sTitle = document.getElementById('srvTitle');
     let sSub = document.getElementById('srvSub');
-
+    let remHours = srvTarget - curHours;
     if (curHours >= srvTarget) {
       sBox.style.borderColor = "#ff3333";
       sTitle.innerText = "⚠ SERVICE DUE! (MAINTENANCE REQUIRED)";
       sTitle.className = "st-blink";
       sTitle.style.color = "#ff3333";
-      sSub.innerText = "OVERDUE BY: " + (curHours - srvTarget) + " HOURS (RUN: " + curHours + "H)";
+      sSub.innerText = "RUN: " + curHours + "H | TARGET: " + srvTarget + "H | OVERDUE: " + (curHours - srvTarget) + "H";
       sSub.style.color = "#ff3333";
     } else {
       sBox.style.borderColor = "#00d4ff";
       sTitle.innerText = "ENGINE STATUS: HEALTHY";
       sTitle.className = "";
       sTitle.style.color = "#00ffcc";
-      sSub.innerText = "NEXT SERVICE AT: " + srvTarget + " HOURS (REMAINING: " + (srvTarget - curHours) + " HOURS)";
+      sSub.innerText = "RUN: " + curHours + "H | NEXT SERVICE: " + srvTarget + "H | REMAINING: " + remHours + "H";
       sSub.style.color = "#ffcc00";
     }
     if (d.logs && Array.isArray(d.logs)) {

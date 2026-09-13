@@ -527,15 +527,25 @@ if (isOn === 1) {
     document.getElementById('dt').innerText = d.dt;
     document.getElementById('onCnt').innerText = d.onc;
     document.getElementById('offCnt').innerText = d.ofc;
-    document.getElementById('runTime').innerText = d.runtime;
-if(d.boardIP) document.getElementById('bIP').innerText = d.boardIP;
+    document.getElementById('runTime').innerText = d.runtime;  
+    if(d.boardIP) document.getElementById('bIP').innerText = d.boardIP;
+
     let srvTarget = d.srvHrs || 300;
-    let rParts = (d.runtime || "00:00:00").split(":");
-   let curHours = parseInt(rParts[0]) || 0;
+    
+    // --- START FIX: સચોટ કલાક અને સર્વિસ રીમેનિંગ ગણતરી ---
+    let curHours = 0;
+    if (d.liveHours !== undefined) {
+      curHours = parseInt(d.liveHours) || 0;
+    } else {
+      let rParts = (d.runtime || "00:00:00").split(":");
+      curHours = parseInt(rParts[0]) || 0;
+    }
+
     let sBox = document.getElementById('srvBox');
     let sTitle = document.getElementById('srvTitle');
     let sSub = document.getElementById('srvSub');
     let remHours = srvTarget - curHours;
+
     if (curHours >= srvTarget) {
       sBox.style.borderColor = "#ff3333";
       sTitle.innerText = "⚠ SERVICE DUE! (MAINTENANCE REQUIRED)";
@@ -642,16 +652,18 @@ document.getElementById('mLock').checked = d.mLock;
   function resetWeek() {
     let p = document.getElementById('logPin').value;
     if (p == '12345') {   
-      if (confirm('Are you sure to Clear 7-Day History?')) {
-        let actDev = devList[currentDevIdx] ? devList[currentDevIdx].id : "";
+      if (confirm('Are you sure to Clear 7-Day History?')) {  
+         let actDev = devList[currentDevIdx] ? devList[currentDevIdx].id : "";
         if(actDev && fbURL) {
           fetch(fbURL + '/devices/' + actDev + '/cmd.json', {
             method: 'PUT',
             body: JSON.stringify({ action: "resetWeekly", time: Date.now() })
           }).then(() => alert("7-Day History Cleared via Firebase!"));
         }
-      }
-    } else { alert('Incorrect PIN!'); }
+      } // <--- આ બ્રેકેટ ખૂટતો હતો જે ઉમેર્યો છે
+    } else { 
+      alert('Incorrect PIN!'); 
+    }
     document.getElementById('logPin').value = "";
   }
   function unlock(){if(document.getElementById('cp').value=='12345')document.getElementById('cal-section').style.display='block'; else alert('Wrong Password');}

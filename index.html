@@ -69,7 +69,7 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
  .red-static { background-color: #ff3333; box-shadow: 0 0 5px #ff3333; }
  @keyframes blinker { 50% { opacity: 0; } }
  #cal-section{display:none; margin-top:15px; padding-top:15px; border-top:1px solid #444;}
- st-box { background: #1a1a1a; padding: 15px; border-radius: 12px; margin: 15px auto; max-width: 500px; border: 2px solid #444; }
+ .st-box { background: #1a1a1a; padding: 15px; border-radius: 12px; margin: 15px auto; max-width: 500px; border: 2px solid #444; }
  .st-item { font-weight: bold; font-size: 19px; padding: 8px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; }
  .st-blink { color: #ff3333; animation: blinker 0.7s linear infinite; text-shadow: 0 0 8px #ff0000; }
  @keyframes blinker { 50% { opacity: 0; } }
@@ -96,7 +96,7 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
   <div id="tm" style="font-size: 45px; font-weight: bold; color: #00ffcc; text-shadow: 0 0 15px rgba(0,255,204,0.5);">00:00:00 --</div>
   <div id="dt" style="font-size: 18px; color: #aaa; margin-top: 5px; letter-spacing: 2px;">01-01-2024 - MON</div>
  </div>
-
+</div>
 <div class="box" style="background:#1a1a1a; border:1px solid #00d4ff; padding:10px; margin: 10px auto; max-width:500px;">
    <span style="color:#00d4ff; font-weight:bold;">SELECT GENERATOR:</span>
    <select id="devSelect" onchange="switchDevice(this.value)" style="padding:8px; background:#222; color:#fff; border:1px solid #555; border-radius:5px; font-weight:bold; width:60%; margin-left:5px;">
@@ -112,7 +112,9 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
      <button class="btn" style="width:45%; background:#c0392b; display:inline-block;" onclick="document.getElementById('cfgModal').style.display='none'">CLOSE</button>
    </div>
  </div>
-
+ <div id="genStatusBadge" style="display:inline-block; padding:8px 20px; border-radius:25px; font-size:20px; font-weight:900; margin:10px auto; background:#333; color:#ff3333; border:2px solid #ff3333; letter-spacing:1px">
+   <span id="genDot" class="dot red-static"></span> <span id="genStatusTxt">GENERATOR: STOPPED (OFF)</span>
+ </div>
  <h2>GENSET LIVE DASHBOARD</h2>
  <div class="box" id="srvBox" style="background: linear-gradient(145deg, #1f1f1f, #141414); border: 2px solid #00d4ff; border-radius: 12px; padding: 12px; margin: 10px auto; max-width: 500px;">
    <div style="font-size: 13px; color: #aaa; letter-spacing: 1px;">GENSET IP ADDRESS: <span id="bIP" style="color: #00ffcc; font-weight: bold; font-size: 16px;">0.0.0.0</span></div>
@@ -237,14 +239,14 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
     <input type="password" id="logPin" placeholder="****" style="width:80px; text-align:center; padding:8px; background:#111; color:#00ff00; border:1px solid #444;">
     <button class="btn" style="background:#e74c3c; width:150px; margin:0; padding:10px; font-size:12px;" onclick="resetWeek()">RESET 7-DAY LOGS</button>
   </div>
- </div>
- <div class="box">
+ </div> 
+  <div class="box">
   <h3 style="color:#00d4ff">WiFi Settings</h3>
+  <div style="font-size:15px; margin-bottom:10px; color:#ffcc00; font-weight:bold;">CONNECTED WIFI: <span id="curWifi" style="color:#00ffcc;">--</span></div>
   SSID: <input id="fb_ssid" type="text" placeholder="WiFi Name"><br>
    PASS: <input id="fb_pass" type="password" placeholder="WiFi Password"><br>
    <button type="button" onclick="saveWifiFirebase()" class="btn" style="background:#007bff">SAVE WIFI SETTINGS</button>
  </div>
-
  <div class="box">
   <h3 style="color:#ffcc00">Calibration Settings</h3>
   <input type="password" id="cp" placeholder="Enter Admin Password (*****)">
@@ -429,7 +431,23 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
 let isOn = parseInt(d.isOn);
 let ca = parseInt(d.ca);
 let r26 = parseInt(d.r26);
+let gBadge = document.getElementById('genStatusBadge');
+let gDot = document.getElementById('genDot');
+let gTxt = document.getElementById('genStatusTxt');
 
+if (isOn === 1) {
+    gBadge.style.borderColor = "#00ff00";
+    gBadge.style.boxShadow = "0 0 15px rgba(0,255,0,0.4)";
+    gDot.className = "dot green-blink";
+    gTxt.innerText = "GENERATOR: RUNNING (ON)";
+    gTxt.style.color = "#00ff00";
+} else {
+    gBadge.style.borderColor = "#ff3333";
+    gBadge.style.boxShadow = "none";
+    gDot.className = "dot red-static";
+    gTxt.innerText = "GENERATOR: STOPPED (OFF)";
+    gTxt.style.color = "#ff3333";
+}
 if (isOn === 1) {
     // શરત ૧: જો જનરેટર ચાલુ હોય (ALT સોર્સ)
     dot.className = "dot green-blink";
@@ -528,27 +546,37 @@ if (isOn === 1) {
     document.getElementById('onCnt').innerText = d.onc;
     document.getElementById('offCnt').innerText = d.ofc;
     document.getElementById('runTime').innerText = d.runtime;
-if(d.boardIP) document.getElementById('bIP').innerText = d.boardIP;
-    let srvTarget = d.srvHrs || 300;
+if(d.boardIP) document.getElementById('bIP').innerText = d.boardIP; 
+if(d.wfName) document.getElementById('curWifi').innerText = d.wfName;
+  let srvTargetHours = parseInt(d.srvHrs) || 300;
+    let srvTargetSec = srvTargetHours * 3600;
     let rParts = (d.runtime || "00:00:00").split(":");
-   let curHours = parseInt(rParts[0]) || 0;
+    let runSecTotal = (parseInt(rParts[0]) || 0) * 3600 + (parseInt(rParts[1]) || 0) * 60 + (parseInt(rParts[2]) || 0);
+
     let sBox = document.getElementById('srvBox');
     let sTitle = document.getElementById('srvTitle');
     let sSub = document.getElementById('srvSub');
-    let remHours = srvTarget - curHours;
-    if (curHours >= srvTarget) {
+    let srvTargetStr = String(srvTargetHours).padStart(2, '0') + ":00:00";
+
+    if (runSecTotal >= srvTargetSec) {
+      let overSec = runSecTotal - srvTargetSec;
+      let oh = Math.floor(overSec / 3600), om = Math.floor((overSec % 3600) / 60), os = overSec % 60;
+      let overStr = String(oh).padStart(2, '0') + ":" + String(om).padStart(2, '0') + ":" + String(os).padStart(2, '0');
       sBox.style.borderColor = "#ff3333";
       sTitle.innerText = "⚠ SERVICE DUE! (MAINTENANCE REQUIRED)";
       sTitle.className = "st-blink";
       sTitle.style.color = "#ff3333";
-      sSub.innerText = "RUN: " + curHours + "H | TARGET: " + srvTarget + "H | OVERDUE: " + (curHours - srvTarget) + "H";
+      sSub.innerText = "TARGET: " + srvTargetStr + " | OVERDUE: " + overStr;
       sSub.style.color = "#ff3333";
     } else {
+      let remSec = srvTargetSec - runSecTotal;
+      let rh = Math.floor(remSec / 3600), rm = Math.floor((remSec % 3600) / 60), rs = remSec % 60;
+      let remStr = String(rh).padStart(2, '0') + ":" + String(rm).padStart(2, '0') + ":" + String(rs).padStart(2, '0');
       sBox.style.borderColor = "#00d4ff";
       sTitle.innerText = "ENGINE STATUS: HEALTHY";
       sTitle.className = "";
       sTitle.style.color = "#00ffcc";
-      sSub.innerText = "RUN: " + curHours + "H | NEXT SERVICE: " + srvTarget + "H | REMAINING: " + remHours + "H";
+      sSub.innerText = "NEXT SERVICE: " + srvTargetStr + " | REMAINING: " + remStr;
       sSub.style.color = "#ffcc00";
     }
     if (d.logs && Array.isArray(d.logs)) {
@@ -740,4 +768,21 @@ document.getElementById('mLock').checked = d.mLock;
        btn.style.background = originalColor;
     });
   }
- </script></body></html>
+  function saveWifiFirebase() {
+    let s = document.getElementById('fb_ssid').value.trim();
+    let p = document.getElementById('fb_pass').value.trim();
+    if(s === "") { alert("WiFi Name enter karo!"); return; }
+    let actDev = devList[currentDevIdx] ? devList[currentDevIdx].id : "";
+    if(!actDev || !fbURL) { alert("Please configure Device ID first!"); return; }
+    if(confirm("Are you sure to update WiFi on Genset? Board will restart!")) {
+      fetch(fbURL + '/devices/' + actDev + '/cmd.json', {
+        method: 'PUT',
+        body: JSON.stringify({ action: "saveWifi", ssid: s, pass: p, time: Date.now() })
+      }).then(() => {
+        alert("WiFi Settings Sent! Genset ESP32 is restarting...");
+        document.getElementById('fb_ssid').value = "";
+        document.getElementById('fb_pass').value = "";
+      }).catch(e => alert("Error: " + e));
+    }
+  }
+</script></body></html>

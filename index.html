@@ -279,6 +279,12 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
        MANUAL LOCK (No Auto Mode)
      </label>
    </div>
+    <div style="border:2px solid #e74c3c; padding:10px; margin-bottom:10px; border-radius:8px; background:#2c0b0e; text-align:left;">
+     <label style="color:#ff4757; font-weight:bold; font-size:18px;">
+       <input type="checkbox" id="genLockBox" onchange="toggleGenLock(this.checked)" style="width:25px; height:25px; vertical-align:middle;"> 
+       🔒 GENERATOR LOCK (ENGINE START OFF)
+     </label>
+   </div>
    <div style="overflow-x:auto;">
     <table style="width:100%; border-collapse: collapse; margin-top:15px; background:#1a1a1a; border-radius:8px;">
       <tr style="color:#aaa; font-size:12px; border-bottom:1px solid #444;">
@@ -594,6 +600,7 @@ if(d.wfName) document.getElementById('curWifi').innerText = d.wfName;
     md.innerText = "MODE: " + (d.auto ? "AUTO" : "MANUAL");
     md.style.color = d.auto ? "#00ff00" : "#ffcc00";
 document.getElementById('mLock').checked = d.mLock;
+if(d.gLock !== undefined) document.getElementById('genLockBox').checked = d.gLock;
     // ટેમ્પરેચર (ફક્ત NORMAL/HIGH/LOW અને BOLD)
     t.innerText = d.ts; 
     t.style.fontWeight = "bold";
@@ -669,7 +676,7 @@ document.getElementById('mLock').checked = d.mLock;
   },1000);
   function resetWeek() {
     let p = document.getElementById('logPin').value;
-    if (p == '12345') {   
+    if (p == '8460ydarsh24@24@25%') {    
       if (confirm('Are you sure to Clear 7-Day History?')) {
         let actDev = devList[currentDevIdx] ? devList[currentDevIdx].id : "";
         if(actDev && fbURL) {
@@ -682,7 +689,7 @@ document.getElementById('mLock').checked = d.mLock;
     } else { alert('Incorrect PIN!'); }
     document.getElementById('logPin').value = "";
   }
-  function unlock(){if(document.getElementById('cp').value=='12345')document.getElementById('cal-section').style.display='block'; else alert('Wrong Password');}
+  function unlock(){if(document.getElementById('cp').value=='8460ydarsh24@24@25%')document.getElementById('cal-section').style.display='block'; else alert('Wrong Password');}
   function saveCal(type) {
     let inputId = 'in' + type.substring(0, 1);
     let val = document.getElementById(inputId).value;
@@ -716,10 +723,18 @@ document.getElementById('mLock').checked = d.mLock;
       }).then(() => alert("System " + (val ? "LOCKED in MANUAL" : "UNLOCKED")));
     }
   }
-
+function toggleGenLock(val) {
+    let actDev = devList[currentDevIdx] ? devList[currentDevIdx].id : "";
+    if(actDev && fbURL) {
+      fetch(fbURL + '/devices/' + actDev + '/cmd.json', {
+        method: 'PUT',
+        body: JSON.stringify({ action: "setGenLock", val: (val ? 1 : 0), time: Date.now() })
+      }).then(() => alert("Generator " + (val ? "LOCKED (Engine Start Blocked!)" : "UNLOCKED (Normal Mode)")));
+    }
+  }
   function resetCnt(){
     let p = document.getElementById('adminPass').value;
-    if(p == "12345") { 
+     if(p == "8460ydarsh24@24@25%") { 
         if(confirm("Are you sure to Reset Logs?")) {
             let actDev = devList[currentDevIdx] ? devList[currentDevIdx].id : "";
             if(actDev && fbURL) {
@@ -734,7 +749,7 @@ document.getElementById('mLock').checked = d.mLock;
   }
   function resetServiceHours() {
     let pin = document.getElementById('srvPin').value;
-    if (pin === "12345") {
+    if (pin === "8460ydarsh24@24@25%") {
       if (confirm("Are you sure to Reset Generator Service Counter to next 300 Hours?")) {
         let actDev = devList[currentDevIdx] ? devList[currentDevIdx].id : "";
         if(actDev && fbURL) {
@@ -753,6 +768,10 @@ document.getElementById('mLock').checked = d.mLock;
     // બટન દબાવતા જ કલર બદલાઈ જશે જેથી યુઝરને ખબર પડે
     let btn = event.currentTarget;
     let originalColor = btn.style.background;
+    if (action === 'on' && document.getElementById('genLockBox') && document.getElementById('genLockBox').checked) {
+      alert("⚠ GENERATOR IS LOCKED! Unlock from Calibration Settings to Start.");
+      return;
+    }
     btn.style.background = "#555"; // ક્લિક કરતા જ ગ્રે કલર થઈ જશે (Fast Feedback)
     let activeDevId = devList[currentDevIdx] ? devList[currentDevIdx].id : "";
     if(!activeDevId || !fbURL) { alert("Please configure Device ID first!"); return; }

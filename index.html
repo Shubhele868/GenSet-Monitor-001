@@ -428,15 +428,33 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
       document.getElementById('ib').innerText = (d.ib !== undefined ? d.ib : '0') + 'A'; 
       document.getElementById('bb_i').style.width = ((d.ib || 0) * 2) + '%';
     // START NEW CODE
+   let isOn = parseInt(d.isOn);
+    let gBadge = document.getElementById('genStatusBadge');
+    let gDot = document.getElementById('genDot');
+    let gTxt = document.getElementById('genStatusTxt');
+
+    if (isOn === 1) {
+        gBadge.style.borderColor = "#00ff00";
+        gBadge.style.boxShadow = "0 0 15px rgba(0,255,0,0.4)";
+        gDot.className = "dot green-blink";
+        gTxt.innerText = "GENERATOR: RUNNING (ON)";
+        gTxt.style.color = "#00ff00";
+    } else {
+        gBadge.style.borderColor = "#ff3333";
+        gBadge.style.boxShadow = "none";
+        gDot.className = "dot red-static";
+        gTxt.innerText = "GENERATOR: STOPPED (OFF)";
+        gTxt.style.color = "#ff3333";
+    }
+
     document.getElementById('bp').innerText=d.bt+'%';
     document.getElementById('br').style.setProperty('--v', d.bt);
     document.getElementById('bv').innerText=d.bv+'V DC';
     let dot = document.getElementById('chgDot');
-    let txt = document.getElementById('chgTxt'); ////////
-     let src = document.getElementById('chgSrc');  
-    let isOn = parseInt(d.isOn);
+    let txt = document.getElementById('chgTxt'); 
+    let src = document.getElementById('chgSrc');  
     let ca = parseInt(d.ca);
-    let r26 = parseInt(d.r26); 
+    let r26 = parseInt(d.r26);  
     let bVolt = parseFloat(d.bv) || 0; // બેટરી વોલ્ટેજ રીડ કરવા
 
     if (isOn === 1 && bVolt > 14.5) {

@@ -432,47 +432,34 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
     document.getElementById('br').style.setProperty('--v', d.bt);
     document.getElementById('bv').innerText=d.bv+'V DC';
     let dot = document.getElementById('chgDot');
-    let txt = document.getElementById('chgTxt'); 
-    let src = document.getElementById('chgSrc');  
-let isOn = parseInt(d.isOn);
-let ca = parseInt(d.ca);
-let r26 = parseInt(d.r26);
-let gBadge = document.getElementById('genStatusBadge');
-let gDot = document.getElementById('genDot');
-let gTxt = document.getElementById('genStatusTxt');
+    let txt = document.getElementById('chgTxt'); ////////
+     let src = document.getElementById('chgSrc');  
+    let isOn = parseInt(d.isOn);
+    let ca = parseInt(d.ca);
+    let r26 = parseInt(d.r26); 
+    let bVolt = parseFloat(d.bv) || 0; // બેટરી વોલ્ટેજ રીડ કરવા
 
-if (isOn === 1) {
-    gBadge.style.borderColor = "#00ff00";
-    gBadge.style.boxShadow = "0 0 15px rgba(0,255,0,0.4)";
-    gDot.className = "dot green-blink";
-    gTxt.innerText = "GENERATOR: RUNNING (ON)";
-    gTxt.style.color = "#00ff00";
-} else {
-    gBadge.style.borderColor = "#ff3333";
-    gBadge.style.boxShadow = "none";
-    gDot.className = "dot red-static";
-    gTxt.innerText = "GENERATOR: STOPPED (OFF)";
-    gTxt.style.color = "#ff3333";
-}
-if (isOn === 1) {
-    // શરત ૧: જો જનરેટર ચાલુ હોય (ALT સોર્સ)
-    dot.className = "dot green-blink";
-    txt.innerText = "CHARGING ON";
-    txt.style.color = "#00ff00";
-    src.innerText = "SOURCE: GEN (ALTERNATOR)";
-} else if (ca === 1 || r26 === 1) {
-    // શરત ૨: જો જનરેટર બંધ હોય પણ ગ્રીડ ચાર્જર એક્ટિવ હોય (GEB સોર્સ)
-    dot.className = "dot green-blink";
-    txt.innerText = "CHARGING ON";
-    txt.style.color = "#00ff00";
-    src.innerText = "SOURCE: GEB (AC MAINS)";
-} else {
-    // શરત ૩: બંને પાવર બંધ હોય ત્યારે
-    dot.className = "dot red-static";
-    txt.innerText = "NOT CHARGING";
-    txt.style.color = "#ff3333";
-    src.innerText = "SOURCE: --";
-}
+    if (isOn === 1 && bVolt > 14.5) {
+        dot.className = "dot red-static";
+        txt.innerText = "NOT CHARGING";
+        txt.style.color = "#ff3333";
+        src.innerText = "SOURCE: OK (BATT FULL >14.5V)";
+    } else if (isOn === 1) {
+        dot.className = "dot green-blink";
+        txt.innerText = "CHARGING ON";
+        txt.style.color = "#00ff00";
+        src.innerText = "SOURCE: GEN (ALTERNATOR)";
+    } else if (ca === 1 || r26 === 1) {
+        dot.className = "dot green-blink";
+        txt.innerText = "CHARGING ON";
+        txt.style.color = "#00ff00";
+        src.innerText = "SOURCE: GEB (AC MAINS)";
+    } else {
+        dot.className = "dot red-static";
+        txt.innerText = "NOT CHARGING";
+        txt.style.color = "#ff3333";
+        src.innerText = "SOURCE: --";
+    }
     let oV = d.ov; 
     let oS = d.os;
     document.getElementById('ovTxt').innerText = "Voltage: " + oV + "V DC";

@@ -124,12 +124,27 @@ input{padding:10px; margin:5px; width:80%; background:#333; color:white; border:
      <input type="password" id="srvPin" placeholder="***" style="width: 70px; text-align: center; padding: 6px; background: #222; color: #00ff00; border: 1px solid #555; border-radius: 4px; font-size: 16px;">
      <button type="button" class="btn" style="width: auto; padding: 6px 15px; margin: 0; background: #e67e22; font-size: 13px; font-weight: bold; display: inline-block;" onclick="resetServiceHours()">RESET SERVICE</button>
    </div>
-
+ 
 </div>
+
+<div class="box" style="background: linear-gradient(145deg, #222, #1a1a1a); border: 2px solid #00ffcc; text-align: center;">
+   <h3 style="color:#00ffcc; margin-top:0;">🎙 MULTILINGUAL VOICE CONTROL</h3>
+   <p style="font-size:13px; color:#aaa; margin:5px 0;">(Supports Gujarati, Hindi & English)</p>
+   
+   <button onclick="toggleVoiceRecording()" id="micBtn" style="background: #e74c3c; color: white; border: none; border-radius: 50%; width: 70px; height: 70px; font-size: 30px; cursor: pointer; box-shadow: 0 0 15px rgba(231,76,60,0.6); transition: 0.3s; margin: 10px 0;">🎙</button>
+   
+   <div id="voiceStatus" style="font-size: 15px; font-weight: bold; color: #ffcc00; margin-top: 5px;">Click Mic & Speak (e.g. Start / Gen On)</div>
+   
+   <div style="background: rgba(0,0,0,0.5); padding: 8px; border-radius: 6px; margin-top: 10px; border: 1px solid #444;">
+     <span style="font-size: 12px; color: #888;">Recognized Text:</span>
+     <div id="voiceText" style="font-size: 16px; color: #00ffcc; font-weight: bold; min-height: 24px;">---</div>
+   </div>
+ </div>
+
  <div class="ctrl-box">
   <button class="ctrl-btn btn-on" onclick="controlGen('on')">ENGINE<br>START</button>
   <button class="ctrl-btn btn-off" onclick="controlGen('off')">ENGINE<br>STOP</button>
- </div>
+ </div>  
  <div class="flex">
   <div class="card r"><h3>PHASE R</h3><div class="val" id="vr">0V</div><div class="bar-bg"><div id="br_v" class="bar-fill" style="background:#ff3333"></div></div><div class="val" id="ir">0A</div><div class="bar-bg"><div id="br_i" class="bar-fill" style="background:#ff3333"></div></div></div>
   <div class="card y"><h3>PHASE Y</h3><div class="val" id="vy">0V</div><div class="bar-bg"><div id="by_v" class="bar-fill" style="background:#ffcc00"></div></div><div class="val" id="iy">0A</div><div class="bar-bg"><div id="by_i" class="bar-fill" style="background:#ffcc00"></div></div></div>
@@ -808,5 +823,99 @@ function toggleGenLock(val) {
         document.getElementById('fb_pass').value = "";
       }).catch(e => alert("Error: " + e));
     }
+  }
+  let recognition = null;
+  let isListening = false;
+
+  function toggleVoiceRecording() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Your browser does not support Voice Recognition. Please use Google Chrome.");
+      return;
+    }
+
+    if (isListening) {
+      if (recognition) recognition.stop();
+      return;
+    }
+
+    recognition = new SpeechRecognition();
+    recognition.lang = 'hi-IN'; // Gujarati, Hindi, English ત્રણેય માટે સપોર્ટ
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = function() {
+      isListening = true;
+      let mic = document.getElementById('micBtn');
+      mic.style.background = "#2ecc71";
+      mic.style.boxShadow = "0 0 25px rgba(46,204,113,0.9)";
+      document.getElementById('voiceStatus').innerText = "🔴 Listening... Speak Now (Guj/Hindi/Eng)";
+    };
+
+    recognition.onresult = function(event) {
+      let speechResult = event.results[0][0].transcript.toLowerCase().trim();
+      document.getElementById('voiceText').innerText = speechResult;
+      
+      if (
+        speechResult.includes('on') || 
+        speechResult.includes('start') || 
+        speechResult.includes('चालू') || 
+        speechResult.includes('ચાલુ') || 
+        speechResult.includes('શરૂ')
+      ) {
+        document.getElementById('voiceStatus').innerText = "✔ Command Detected: START ENGINE";
+        controlGenVoice('on');
+      } 
+      else if (
+        speechResult.includes('off') || 
+        speechResult.includes('stop') || 
+        speechResult.includes('બંધ') || 
+        speechResult.includes('बंद')
+      ) {
+        document.getElementById('voiceStatus').innerText = "✔ Command Detected: STOP ENGINE";
+        controlGenVoice('off');
+      } 
+      else {
+        document.getElementById('voiceStatus').innerText = "❓ Unrecognized. Say 'Start' or 'Stop'";
+      }
+    };
+
+    recognition.onerror = function(event) {
+      document.getElementById('voiceStatus').innerText = "❌ Error: " + event.error;
+      resetMicUI();
+    };
+
+    recognition.onend = function() {
+      resetMicUI();
+    };
+
+    recognition.start();
+  }
+
+  function resetMicUI() {
+    isListening = false;
+    let mic = document.getElementById('micBtn');
+    if(mic) {
+      mic.style.background = "#e74c3c";
+      mic.style.boxShadow = "0 0 15px rgba(231,76,60,0.6)";
+    }
+  }
+
+  function controlGenVoice(action) {
+    if (action === 'on' && document.getElementById('genLockBox') && document.getElementById('genLockBox').checked) {
+      alert("⚠ GENERATOR IS LOCKED!");
+      return;
+    }
+    let activeDevId = devList[currentDevIdx] ? devList[currentDevIdx].id : "";
+    if(!activeDevId || !fbURL) { alert("Please configure Device ID first!"); return; }
+
+    fetch(fbURL + '/devices/' + activeDevId + '/cmd.json', {
+      method: 'PUT',
+      body: JSON.stringify({ action: action, time: Date.now() })
+    }).then(() => {
+      console.log("Voice Command Sent Successfully: " + action);
+    }).catch(err => {
+      console.error("Voice Command Network Error");
+    });
   }
 </script></body></html>

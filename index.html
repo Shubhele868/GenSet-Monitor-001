@@ -824,6 +824,7 @@ function toggleGenLock(val) {
       }).catch(e => alert("Error: " + e));
     }
   }
+  // --- MULTILINGUAL VOICE CONTROL SCRIPT (ENG, GUJ, HIND) ---
   let recognition = null;
   let isListening = false;
 
@@ -840,7 +841,7 @@ function toggleGenLock(val) {
     }
 
     recognition = new SpeechRecognition();
-    recognition.lang = 'hi-IN'; // Gujarati, Hindi, English ત્રણેય માટે સપોર્ટ
+    recognition.lang = 'en-IN'; // Indian English / Gujarati / Hindi મિક્સ સપોર્ટ માટે શ્રેષ્ઠ
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
@@ -849,34 +850,41 @@ function toggleGenLock(val) {
       let mic = document.getElementById('micBtn');
       mic.style.background = "#2ecc71";
       mic.style.boxShadow = "0 0 25px rgba(46,204,113,0.9)";
-      document.getElementById('voiceStatus').innerText = "🔴 Listening... Speak Now (Guj/Hindi/Eng)";
+      document.getElementById('voiceStatus').innerText = "🔴 Listening... (Speak in Eng, Guj or Hindi)";
     };
 
     recognition.onresult = function(event) {
       let speechResult = event.results[0][0].transcript.toLowerCase().trim();
       document.getElementById('voiceText').innerText = speechResult;
       
+      // ૧. ENGINE START / ON કરવા માટેના ત્રણેય ભાષાના શબ્દો
       if (
         speechResult.includes('on') || 
         speechResult.includes('start') || 
+        speechResult.includes('star') || 
         speechResult.includes('चालू') || 
         speechResult.includes('ચાલુ') || 
-        speechResult.includes('શરૂ')
+        speechResult.includes('શરૂ') ||
+        speechResult.includes('chalu') ||
+        speechResult.includes('sharu')
       ) {
         document.getElementById('voiceStatus').innerText = "✔ Command Detected: START ENGINE";
         controlGenVoice('on');
       } 
+      // ૨. ENGINE STOP / OFF કરવા માટેના ત્રણેય ભાષાના શબ્દો
       else if (
         speechResult.includes('off') || 
         speechResult.includes('stop') || 
+        speechResult.includes('stap') || 
         speechResult.includes('બંધ') || 
-        speechResult.includes('बंद')
+        speechResult.includes('बंद') ||
+        speechResult.includes('bandh')
       ) {
         document.getElementById('voiceStatus').innerText = "✔ Command Detected: STOP ENGINE";
         controlGenVoice('off');
       } 
       else {
-        document.getElementById('voiceStatus').innerText = "❓ Unrecognized. Say 'Start' or 'Stop'";
+        document.getElementById('voiceStatus').innerText = "❓ Not recognized. Say 'Start' or 'Stop'";
       }
     };
 
